@@ -29,4 +29,5 @@ public class UserController {
         String token = userService.login(request);
         return ResponseEntity.ok(ApiResponse.ok(token));
     }
+
 }
