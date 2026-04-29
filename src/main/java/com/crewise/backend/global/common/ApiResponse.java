@@ -1,4 +1,8 @@
-// global/common/ApiResponse.java
+package com.crewise.backend.global.common;
+
+import lombok.Getter;
+import lombok.AllArgsConstructor;
+
 @Getter
 @AllArgsConstructor
 public class ApiResponse<T> {

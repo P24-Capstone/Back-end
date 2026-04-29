@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### 4. application.yml - DB 연결 정보 (로컬) ###
+application-secret.yml
