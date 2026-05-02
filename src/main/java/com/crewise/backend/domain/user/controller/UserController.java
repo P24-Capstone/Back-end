@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,6 +29,12 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> login(@Valid @RequestBody LoginRequest request) {
         String token = userService.login(request);
         return ResponseEntity.ok(ApiResponse.ok(token));
+    }
+
+    @PostMapping("/check-email")
+    public ResponseEntity<ApiResponse<Void>> checkEmail(@RequestBody Map<String, String> body) {
+        userService.checkEmail(body.get("email"));
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
 }

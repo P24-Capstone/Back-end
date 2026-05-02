@@ -51,6 +51,13 @@ public class UserService {
         return jwtUtil.generateToken(user.getUserId());
     }
 
+    // 이메일 중복 확인
+    public void checkEmail(String email) {
+        if (userRepository.existsByUserEmail(email)) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+    }
+
     // ULID 대신 임시로 UUID 사용
     private String generateUlid() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 26);
