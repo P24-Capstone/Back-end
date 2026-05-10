@@ -9,6 +9,9 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, String> {
     List<Member> findByTeamIdOrderByMemRoleAsc(String teamId);
 
+    // 사용자가 가입한 모임 목록
+    List<Member> findByUserId(String userId);
+
     Optional<Member> findByUserIdAndTeamId(String userId, String teamId);
 
     boolean existsByUserIdAndTeamId(String userId, String teamId);
