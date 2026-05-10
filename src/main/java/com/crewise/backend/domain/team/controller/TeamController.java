@@ -7,6 +7,7 @@ import com.crewise.backend.global.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,11 +19,11 @@ public class TeamController {
 
     private final TeamService teamService;
 
-    // 모임 목록 조회
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<TeamResponse>>> getTeams(
-            @RequestParam(required = false) String teamName) {
-        return ResponseEntity.ok(ApiResponse.ok(teamService.getTeams(teamName)));
+    // 내 모임 목록 조회 (가입한 모임만)
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<TeamResponse>>> getMyTeams(
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(teamService.getMyTeams(userId)));
     }
 
     // 모임 상세 조회
@@ -35,7 +36,26 @@ public class TeamController {
     // 모임 생성
     @PostMapping
     public ResponseEntity<ApiResponse<TeamResponse>> createTeam(
-            @Valid @RequestBody TeamCreateRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(teamService.createTeam(request)));
+            @Valid @RequestBody TeamCreateRequest request,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(teamService.createTeam(request, userId)));
+    }
+
+    // 모임 수정 (모임장만)
+    @PutMapping("/{teamId}")
+    public ResponseEntity<ApiResponse<TeamResponse>> updateTeam(
+            @PathVariable String teamId,
+            @Valid @RequestBody TeamCreateRequest request,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(teamService.updateTeam(teamId, request, userId)));
+    }
+
+    // 모임 삭제 (모임장만)
+    @DeleteMapping("/{teamId}")
+    public ResponseEntity<ApiResponse<Void>> deleteTeam(
+            @PathVariable String teamId,
+            @AuthenticationPrincipal String userId) {
+        teamService.deleteTeam(teamId, userId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
