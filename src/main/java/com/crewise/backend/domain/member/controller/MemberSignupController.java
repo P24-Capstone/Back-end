@@ -27,25 +27,28 @@ public class MemberSignupController {
         return ResponseEntity.ok(ApiResponse.ok(memberSignupService.apply(request, userId)));
     }
 
-    // 가입 신청 목록 조회 (모임장용)
+    // 가입 신청 목록 조회 (모임장만)
     @GetMapping
     public ResponseEntity<ApiResponse<List<MemberSignupResponse>>> getSignups(
-            @RequestParam String teamId) {
-        return ResponseEntity.ok(ApiResponse.ok(memberSignupService.getSignups(teamId)));
+            @RequestParam String teamId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(memberSignupService.getSignups(teamId, userId)));
     }
 
-    // 가입 승인
+    // 가입 승인 (모임장만)
     @PatchMapping("/{signupId}/approve")
     public ResponseEntity<ApiResponse<MemberSignupResponse>> approve(
-            @PathVariable Long signupId) {
-        return ResponseEntity.ok(ApiResponse.ok(memberSignupService.approve(signupId)));
+            @PathVariable Long signupId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(memberSignupService.approve(signupId, userId)));
     }
 
-    // 가입 거절
+    // 가입 거절 (모임장만)
     @PatchMapping("/{signupId}/reject")
     public ResponseEntity<ApiResponse<MemberSignupResponse>> reject(
-            @PathVariable Long signupId) {
-        return ResponseEntity.ok(ApiResponse.ok(memberSignupService.reject(signupId)));
+            @PathVariable Long signupId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(memberSignupService.reject(signupId, userId)));
     }
 
     // 가입 신청 취소
