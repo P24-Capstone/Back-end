@@ -2,6 +2,7 @@ package com.crewise.backend.domain.user.service;
 
 import com.crewise.backend.domain.user.dto.LoginRequest;
 import com.crewise.backend.domain.user.dto.SignupRequest;
+import com.crewise.backend.domain.user.dto.UserResponse;
 import com.crewise.backend.domain.user.dto.UserUpdateRequest;
 import com.crewise.backend.domain.user.entity.User;
 import com.crewise.backend.domain.user.repository.UserRepository;
@@ -50,6 +51,14 @@ public class UserService {
         }
 
         return jwtUtil.generateToken(user.getUserId());
+    }
+
+    // 내 정보 조회
+    @Transactional(readOnly = true)
+    public UserResponse getUser(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        return UserResponse.from(user);
     }
 
     // 회원 탈퇴

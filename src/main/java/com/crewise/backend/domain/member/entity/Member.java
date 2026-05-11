@@ -35,4 +35,14 @@ public class Member {
 
     @Column(name = "TEAM_ID", length = 10, nullable = false)
     private String teamId;
+
+    public void approve(String procDtm) {
+        this.memState = "A";
+        this.procDtm = procDtm;
+    }
+
+    public void reject(String procDtm) {
+        this.memState = "R";
+        this.procDtm = procDtm;
+    }
 }

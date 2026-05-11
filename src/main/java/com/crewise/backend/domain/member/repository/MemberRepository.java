@@ -7,12 +7,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, String> {
-    List<Member> findByTeamIdOrderByMemRoleAsc(String teamId);
+    List<Member> findByTeamIdAndMemStateOrderByMemRoleAsc(String teamId, String memState);
 
-    // 사용자가 가입한 모임 목록
-    List<Member> findByUserId(String userId);
+    List<Member> findByTeamIdAndMemStateOrderByRegDtmDesc(String teamId, String memState);
+
+    // 사용자가 가입한(승인된) 모임 목록
+    List<Member> findByUserIdAndMemState(String userId, String memState);
 
     Optional<Member> findByUserIdAndTeamId(String userId, String teamId);
 
     boolean existsByUserIdAndTeamId(String userId, String teamId);
+
+    List<Member> findByTeamIdOrderByMemRoleAsc(String teamId);
 }
