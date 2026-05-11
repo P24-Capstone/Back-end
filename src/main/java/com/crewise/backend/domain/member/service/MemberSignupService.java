@@ -2,7 +2,9 @@ package com.crewise.backend.domain.member.service;
 
 import com.crewise.backend.domain.member.dto.MemberSignupRequest;
 import com.crewise.backend.domain.member.dto.MemberSignupResponse;
+import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.entity.MemberSignup;
+import com.crewise.backend.domain.member.repository.MemberRepository;
 import com.crewise.backend.domain.member.repository.MemberSignupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,16 @@ import java.util.stream.Collectors;
 public class MemberSignupService {
 
     private final MemberSignupRepository memberSignupRepository;
+    private final MemberRepository memberRepository;
+
+    // 모임장 여부 확인
+    private void checkLeader(String userId, String teamId) {
+        Member member = memberRepository.findByUserIdAndTeamId(userId, teamId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 모임의 멤버가 아닙니다."));
+        if (!"L".equals(member.getMemRole())) {
+            throw new IllegalArgumentException("모임장만 가능한 작업입니다.");
+        }
+    }
 
     // 가입 신청
     @Transactional
@@ -36,20 +48,22 @@ public class MemberSignupService {
         return MemberSignupResponse.from(memberSignupRepository.save(signup));
     }
 
-    // 가입 신청 목록 조회 (모임장용)
+    // 가입 신청 목록 조회 (모임장만)
     @Transactional(readOnly = true)
-    public List<MemberSignupResponse> getSignups(String teamId) {
+    public List<MemberSignupResponse> getSignups(String teamId, String userId) {
+        checkLeader(userId, teamId);
         return memberSignupRepository.findByTeamIdOrderByRegDtmDesc(teamId)
                 .stream()
                 .map(MemberSignupResponse::from)
                 .collect(Collectors.toList());
     }
 
-    // 가입 승인
+    // 가입 승인 (모임장만)
     @Transactional
-    public MemberSignupResponse approve(Long signupId) {
+    public MemberSignupResponse approve(Long signupId, String userId) {
         MemberSignup signup = memberSignupRepository.findById(signupId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+        checkLeader(userId, signup.getTeamId());
 
         MemberSignup updated = MemberSignup.builder()
                 .signupId(signup.getSignupId())
@@ -63,11 +77,12 @@ public class MemberSignupService {
         return MemberSignupResponse.from(memberSignupRepository.save(updated));
     }
 
-    // 가입 거절
+    // 가입 거절 (모임장만)
     @Transactional
-    public MemberSignupResponse reject(Long signupId) {
+    public MemberSignupResponse reject(Long signupId, String userId) {
         MemberSignup signup = memberSignupRepository.findById(signupId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+        checkLeader(userId, signup.getTeamId());
 
         MemberSignup updated = MemberSignup.builder()
                 .signupId(signup.getSignupId())
