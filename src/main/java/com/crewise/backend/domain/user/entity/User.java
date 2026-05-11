@@ -26,4 +26,10 @@ public class User {
 
     @Column(name = "USER_TEL", length = 11, nullable = false)
     private String userTel;
+
+    public void update(String userPw, String userName, String userTel) {
+        if (userPw != null && !userPw.isEmpty()) this.userPw = userPw;
+        if (userName != null && !userName.isEmpty()) this.userName = userName;
+        if (userTel != null && !userTel.isEmpty()) this.userTel = userTel;
+    }
 }

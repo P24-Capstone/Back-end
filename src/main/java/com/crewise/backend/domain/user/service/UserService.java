@@ -2,6 +2,7 @@ package com.crewise.backend.domain.user.service;
 
 import com.crewise.backend.domain.user.dto.LoginRequest;
 import com.crewise.backend.domain.user.dto.SignupRequest;
+import com.crewise.backend.domain.user.dto.UserUpdateRequest;
 import com.crewise.backend.domain.user.entity.User;
 import com.crewise.backend.domain.user.repository.UserRepository;
 import com.crewise.backend.global.config.jwt.JwtUtil;
@@ -49,6 +50,27 @@ public class UserService {
         }
 
         return jwtUtil.generateToken(user.getUserId());
+    }
+
+    // 회원 탈퇴
+    @Transactional
+    public void deleteUser(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        userRepository.delete(user);
+    }
+
+    // 회원정보 수정
+    @Transactional
+    public void updateUser(String userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        String encodedPw = (request.getUserPw() != null && !request.getUserPw().isEmpty())
+                ? passwordEncoder.encode(request.getUserPw())
+                : null;
+
+        user.update(encodedPw, request.getUserName(), request.getUserTel());
     }
 
     // 이메일 중복 확인
