@@ -7,8 +7,10 @@ import com.crewise.backend.global.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import com.crewise.backend.domain.user.dto.UserUpdateRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,5 +38,19 @@ public class UserController {
         userService.checkEmail(body.get("email"));
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
+    // 회원 탈퇴
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal String userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
 
+    // 회원정보 수정
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> updateUser(
+            @AuthenticationPrincipal String userId,
+            @RequestBody UserUpdateRequest request) {
+        userService.updateUser(userId, request);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
 }

@@ -1,28 +1,16 @@
 package com.crewise.backend.domain.user.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignupRequest {
-
-    @Email
-    @NotBlank
-    private String userEmail;
-
-    @NotBlank
+public class UserUpdateRequest {
     private String userPw;
-
-    @NotBlank
     private String userName;
-
-    @NotBlank
     private String userTel;
 }
