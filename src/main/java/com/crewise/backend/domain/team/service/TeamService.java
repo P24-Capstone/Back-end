@@ -61,7 +61,12 @@ public class TeamService {
     // 모임 생성
     @Transactional
     public TeamResponse createTeam(TeamCreateRequest request, String userId) {
-        String teamId = generateTeamId();
+        String teamId = request.getTeamId();
+
+        if (teamRepository.existsById(teamId)) {
+            throw new IllegalArgumentException("이미 사용 중인 모임 아이디입니다.");
+        }
+
         String code = generateCode();
 
         Team team = Team.builder()
@@ -122,21 +127,6 @@ public class TeamService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임입니다."));
         checkLeader(userId, teamId);
         teamRepository.delete(team);
-    }
-
-    // 6자리 랜덤 모임 ID 생성
-    private String generateTeamId() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Random random = new Random();
-        String teamId;
-        do {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            teamId = sb.toString();
-        } while (teamRepository.existsById(teamId));
-        return teamId;
     }
 
     // 초대코드 생성

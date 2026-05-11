@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 public class TeamCreateRequest {
 
     @NotBlank
+    private String teamId;
+
+    @NotBlank
     private String teamName;
 
     private String teamImg;
