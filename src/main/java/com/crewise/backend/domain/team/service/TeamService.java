@@ -39,10 +39,14 @@ public class TeamService {
     // 내가 가입한 모임 목록 조회
     @Transactional(readOnly = true)
     public List<TeamResponse> getMyTeams(String userId) {
-        List<String> teamIds = memberRepository.findByUserId(userId)
+        List<String> teamIds = memberRepository.findByUserIdAndMemState(userId, "A")
                 .stream()
                 .map(Member::getTeamId)
                 .collect(Collectors.toList());
+
+        if (teamIds.isEmpty()) {
+            return List.of();
+        }
 
         return teamRepository.findAllById(teamIds)
                 .stream()
