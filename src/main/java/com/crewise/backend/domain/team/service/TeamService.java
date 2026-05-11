@@ -6,6 +6,8 @@ import com.crewise.backend.domain.team.dto.TeamCreateRequest;
 import com.crewise.backend.domain.team.dto.TeamResponse;
 import com.crewise.backend.domain.team.entity.Team;
 import com.crewise.backend.domain.team.repository.TeamRepository;
+import com.crewise.backend.domain.user.entity.User;
+import com.crewise.backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +25,7 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final MemberRepository memberRepository;
+    private final UserRepository userRepository;
 
     // 모임장 여부 확인
     private void checkLeader(String userId, String teamId) {
@@ -70,6 +76,21 @@ public class TeamService {
                 .build();
 
         teamRepository.save(team);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        Member member = Member.builder()
+                .memId(UUID.randomUUID().toString().replace("-", "").substring(0, 26))
+                .memNic(user.getUserName())
+                .memRole("L")
+                .memState("A")
+                .regDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .userId(userId)
+                .teamId(teamId)
+                .build();
+        memberRepository.save(member);
+
         return TeamResponse.from(team);
     }
 
