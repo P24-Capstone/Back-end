@@ -1,5 +1,7 @@
 package com.crewise.backend.domain.mission.service;
 
+import com.crewise.backend.domain.mission.entity.VerifyFile;
+import com.crewise.backend.domain.mission.repository.VerifyFileRepository;
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
 import com.crewise.backend.domain.mission.dto.MissionCreateRequest;
@@ -30,6 +32,7 @@ public class MissionService {
     private final MissionVerifyRepository missionVerifyRepository;
     private final MemberRepository memberRepository;
     private final RestTemplate restTemplate;
+    private final VerifyFileRepository verifyFileRepository;
 
     @Value("${ai.serving.url}")
     private String aiServingUrl;
@@ -116,6 +119,7 @@ public class MissionService {
         String aiRejectYn = Boolean.TRUE.equals(aiResponse.get("rejected")) ? "Y" : "N";
         String aiResult = (String) aiResponse.get("reason");
 
+        // 1. MISSION_VERIFY 저장
         MissionVerify verify = MissionVerify.builder()
                 .verifyContent(request.getVerifyContent())
                 .verifyRegDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
@@ -126,6 +130,17 @@ public class MissionService {
                 .memId(memId)
                 .build();
 
-        return missionVerifyRepository.save(verify);
+        MissionVerify savedVerify = missionVerifyRepository.save(verify);
+
+        // 2. VERIFY_FILE 저장 (이미지 URL이 있는 경우)
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            VerifyFile verifyFile = VerifyFile.builder()
+                    .verifyFileKey(request.getImageUrl())
+                    .verifyId(savedVerify.getVerifyId())
+                    .build();
+            verifyFileRepository.save(verifyFile);
+        }
+
+        return savedVerify;
     }
 }
