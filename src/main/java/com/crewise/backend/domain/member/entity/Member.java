@@ -36,6 +36,9 @@ public class Member {
     @Column(name = "TEAM_ID", length = 10, nullable = false)
     private String teamId;
 
+    @Column(name = "USER_IMG_ID")
+    private Long userImgId;
+
     public void approve(String procDtm) {
         this.memState = "A";
         this.procDtm = procDtm;

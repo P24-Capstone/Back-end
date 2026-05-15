@@ -7,6 +7,8 @@ import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
 import com.crewise.backend.domain.team.entity.Team;
 import com.crewise.backend.domain.team.repository.TeamRepository;
+import com.crewise.backend.domain.user.entity.UserImg;
+import com.crewise.backend.domain.user.repository.UserImgRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,16 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
+    private final UserImgRepository userImgRepository;
+
+    // 이미지 URL 조회
+    private String getImgFileKey(Long userImgId) {
+        if (userImgId == null)
+            return null;
+        return userImgRepository.findById(userImgId)
+                .map(UserImg::getImgFileKey)
+                .orElse(null);
+    }
 
     // 모임원 목록 조회 (리더: 전체 상태, 일반: A 상태만)
     @Transactional(readOnly = true)
@@ -34,12 +46,12 @@ public class MemberService {
         if (isLeader) {
             return memberRepository.findByTeamIdOrderByMemRoleAsc(teamId)
                     .stream()
-                    .map(MemberResponse::from)
+                    .map(m -> MemberResponse.from(m, getImgFileKey(m.getUserImgId())))
                     .collect(Collectors.toList());
         }
         return memberRepository.findByTeamIdAndMemStateOrderByMemRoleAsc(teamId, "A")
                 .stream()
-                .map(MemberResponse::from)
+                .map(m -> MemberResponse.from(m, getImgFileKey(m.getUserImgId())))
                 .collect(Collectors.toList());
     }
 
@@ -48,7 +60,7 @@ public class MemberService {
     public MemberResponse getMyMembership(String teamId, String userId) {
         Member member = memberRepository.findByUserIdAndTeamId(userId, teamId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 모임의 멤버가 아닙니다."));
-        return MemberResponse.from(member);
+        return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 
     // 모임원 상세 조회
@@ -56,7 +68,7 @@ public class MemberService {
     public MemberResponse getMember(String memId) {
         Member member = memberRepository.findById(memId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임원입니다."));
-        return MemberResponse.from(member);
+        return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 
     // 모임 가입 (모임원 생성)
@@ -66,20 +78,27 @@ public class MemberService {
             throw new IllegalArgumentException("이미 가입된 모임입니다.");
         }
 
+        if (request.getUserImgId() != null) {
+            userImgRepository.findById(request.getUserImgId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지입니다."));
+        }
+
         Member member = Member.builder()
                 .memId(generateMemId())
                 .memNic(request.getMemNic())
-                .memRole("M") // 기본 역할: 일반 멤버
-                .memState("W") // 기본 상태: 대기
+                .memRole("M")
+                .memState("W")
                 .regDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .userId(userId)
                 .teamId(request.getTeamId())
+                .userImgId(request.getUserImgId())
                 .build();
 
-        return MemberResponse.from(memberRepository.save(member));
+        Member saved = memberRepository.save(member);
+        return MemberResponse.from(saved, getImgFileKey(saved.getUserImgId()));
     }
 
-    // 추천코드로 모임 가입 (모임원 생성)
+    // 추천코드로 모임 가입
     @Transactional
     public MemberResponse joinTeamByCode(MemberJoinByCodeRequest request, String userId) {
         Team team = teamRepository.findByCode(request.getCode())
@@ -89,17 +108,24 @@ public class MemberService {
             throw new IllegalArgumentException("이미 가입된 모임입니다.");
         }
 
+        if (request.getUserImgId() != null) {
+            userImgRepository.findById(request.getUserImgId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지입니다."));
+        }
+
         Member member = Member.builder()
                 .memId(generateMemId())
                 .memNic(request.getMemNic())
-                .memRole("M") // 기본 역할: 일반 멤버
-                .memState("W") // 기본 상태: 대기
+                .memRole("M")
+                .memState("W")
                 .regDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .userId(userId)
                 .teamId(team.getTeamId())
+                .userImgId(request.getUserImgId())
                 .build();
 
-        return MemberResponse.from(memberRepository.save(member));
+        Member saved = memberRepository.save(member);
+        return MemberResponse.from(saved, getImgFileKey(saved.getUserImgId()));
     }
 
     // 모임 탈퇴
@@ -125,7 +151,7 @@ public class MemberService {
         checkLeader(userId, teamId);
         return memberRepository.findByTeamIdAndMemStateOrderByRegDtmDesc(teamId, "W")
                 .stream()
-                .map(MemberResponse::from)
+                .map(m -> MemberResponse.from(m, getImgFileKey(m.getUserImgId())))
                 .collect(Collectors.toList());
     }
 
@@ -141,7 +167,7 @@ public class MemberService {
         }
 
         member.approve(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        return MemberResponse.from(member);
+        return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 
     // 가입 거절 (모임장만)
@@ -156,7 +182,7 @@ public class MemberService {
         }
 
         member.reject(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        return MemberResponse.from(member);
+        return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 
     // 모임장 권한 검증
