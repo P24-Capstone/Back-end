@@ -14,8 +14,10 @@ public class MemberResponse {
     private String procDtm;
     private String userId;
     private String teamId;
+    private Long userImgId;
+    private String imgFileKey;
 
-    public static MemberResponse from(Member member) {
+    public static MemberResponse from(Member member, String imgFileKey) {
         MemberResponse response = new MemberResponse();
         response.memId = member.getMemId();
         response.memNic = member.getMemNic();
@@ -25,6 +27,13 @@ public class MemberResponse {
         response.procDtm = member.getProcDtm();
         response.userId = member.getUserId();
         response.teamId = member.getTeamId();
+        response.userImgId = member.getUserImgId();
+        response.imgFileKey = imgFileKey;
         return response;
+    }
+
+    // 이미지 없는 경우
+    public static MemberResponse from(Member member) {
+        return from(member, null);
     }
 }
