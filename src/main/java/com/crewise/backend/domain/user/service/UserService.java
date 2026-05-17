@@ -5,6 +5,7 @@ import com.crewise.backend.domain.user.dto.FindEmailResponse;
 import com.crewise.backend.domain.user.dto.LoginRequest;
 import com.crewise.backend.domain.user.dto.ResetPasswordRequest;
 import com.crewise.backend.domain.user.dto.SignupRequest;
+import com.crewise.backend.domain.user.dto.UserImgResponse;
 import com.crewise.backend.domain.user.dto.UserResponse;
 import com.crewise.backend.domain.user.dto.UserUpdateRequest;
 import com.crewise.backend.domain.user.dto.VerifyUserRequest;
@@ -18,7 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -125,6 +128,39 @@ public class UserService {
         User user = userRepository.findByUserEmailAndUserTel(request.getEmail(), request.getPhone())
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 계정을 찾을 수 없습니다."));
         user.update(passwordEncoder.encode(request.getNewPassword()), null, null);
+    }
+
+    // 내 이미지 목록 조회
+    @Transactional(readOnly = true)
+    public List<UserImgResponse> getUserImages(String userId) {
+        return userImgRepository.findByUserId(userId)
+                .stream()
+                .map(UserImgResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    // 이미지 추가 (파일 업로드 후 URL 저장)
+    @Transactional
+    public UserImgResponse addUserImage(String userId, String imgFileKey) {
+        UserImg userImg = UserImg.builder()
+                .userId(userId)
+                .imgFileKey(imgFileKey)
+                .build();
+        return UserImgResponse.from(userImgRepository.save(userImg));
+    }
+
+    // 이미지 삭제
+    @Transactional
+    public void deleteUserImage(String userId, Long imgId) {
+        UserImg userImg = userImgRepository.findById(imgId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지입니다."));
+        if (!userImg.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
+        }
+        if (DEFAULT_IMG_KEY.equals(userImg.getImgFileKey())) {
+            throw new IllegalArgumentException("기본 이미지는 삭제할 수 없습니다.");
+        }
+        userImgRepository.delete(userImg);
     }
 
     // ULID 대신 임시로 UUID 사용
