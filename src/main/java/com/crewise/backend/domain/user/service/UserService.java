@@ -9,6 +9,8 @@ import com.crewise.backend.domain.user.dto.UserResponse;
 import com.crewise.backend.domain.user.dto.UserUpdateRequest;
 import com.crewise.backend.domain.user.dto.VerifyUserRequest;
 import com.crewise.backend.domain.user.entity.User;
+import com.crewise.backend.domain.user.entity.UserImg;
+import com.crewise.backend.domain.user.repository.UserImgRepository;
 import com.crewise.backend.domain.user.repository.UserRepository;
 import com.crewise.backend.global.config.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +25,11 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserImgRepository userImgRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+
+    public static final String DEFAULT_IMG_KEY = "default";
 
     // 회원가입
     @Transactional
@@ -42,6 +47,12 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
+        // 가입 시 기본 이미지 레코드 자동 생성 (MEMBER.USER_IMG_ID NOT NULL 제약 충족)
+        userImgRepository.save(UserImg.builder()
+                .userId(user.getUserId())
+                .imgFileKey(DEFAULT_IMG_KEY)
+                .build());
     }
 
     // 로그인
