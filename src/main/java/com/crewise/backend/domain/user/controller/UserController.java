@@ -1,7 +1,12 @@
 package com.crewise.backend.domain.user.controller;
 
+import com.crewise.backend.domain.user.dto.FindEmailRequest;
+import com.crewise.backend.domain.user.dto.FindEmailResponse;
 import com.crewise.backend.domain.user.dto.LoginRequest;
+import com.crewise.backend.domain.user.dto.ResetPasswordRequest;
 import com.crewise.backend.domain.user.dto.SignupRequest;
+import com.crewise.backend.domain.user.dto.UserUpdateRequest;
+import com.crewise.backend.domain.user.dto.VerifyUserRequest;
 import com.crewise.backend.domain.user.service.UserService;
 import com.crewise.backend.global.common.ApiResponse;
 import jakarta.validation.Valid;
@@ -10,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
-import com.crewise.backend.domain.user.dto.UserUpdateRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,6 +55,30 @@ public class UserController {
             @AuthenticationPrincipal String userId,
             @RequestBody UserUpdateRequest request) {
         userService.updateUser(userId, request);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    // 이메일 찾기
+    @PostMapping("/find-email")
+    public ResponseEntity<ApiResponse<FindEmailResponse>> findEmail(
+            @Valid @RequestBody FindEmailRequest request) {
+        FindEmailResponse response = userService.findEmail(request);
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    // 본인 확인 (비밀번호 재설정 전)
+    @PostMapping("/verify-user")
+    public ResponseEntity<ApiResponse<Void>> verifyUser(
+            @Valid @RequestBody VerifyUserRequest request) {
+        userService.verifyUser(request);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
