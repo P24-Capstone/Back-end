@@ -7,7 +7,10 @@ import com.crewise.backend.domain.team.dto.TeamResponse;
 import com.crewise.backend.domain.team.entity.Team;
 import com.crewise.backend.domain.team.repository.TeamRepository;
 import com.crewise.backend.domain.user.entity.User;
+import com.crewise.backend.domain.user.entity.UserImg;
+import com.crewise.backend.domain.user.repository.UserImgRepository;
 import com.crewise.backend.domain.user.repository.UserRepository;
+import com.crewise.backend.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final MemberRepository memberRepository;
     private final UserRepository userRepository;
+    private final UserImgRepository userImgRepository;
 
     // 모임장 여부 확인
     private void checkLeader(String userId, String teamId) {
@@ -89,6 +93,19 @@ public class TeamService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
+        // 사용자 이미지 조회 — 없으면 기본 이미지 레코드 자동 생성 (기존 가입 사용자 대응)
+        List<UserImg> imgs = userImgRepository.findByUserId(userId);
+        Long userImgId;
+        if (imgs.isEmpty()) {
+            UserImg defaultImg = userImgRepository.save(UserImg.builder()
+                    .userId(userId)
+                    .imgFileKey(UserService.DEFAULT_IMG_KEY)
+                    .build());
+            userImgId = defaultImg.getImgId();
+        } else {
+            userImgId = imgs.get(imgs.size() - 1).getImgId();
+        }
+
         Member member = Member.builder()
                 .memId(UUID.randomUUID().toString().replace("-", "").substring(0, 26))
                 .memNic(user.getUserName())
@@ -97,6 +114,7 @@ public class TeamService {
                 .regDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .userId(userId)
                 .teamId(teamId)
+                .userImgId(userImgId)
                 .build();
         memberRepository.save(member);
 
