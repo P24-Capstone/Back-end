@@ -1,9 +1,13 @@
 package com.crewise.backend.domain.user.service;
 
+import com.crewise.backend.domain.user.dto.FindEmailRequest;
+import com.crewise.backend.domain.user.dto.FindEmailResponse;
 import com.crewise.backend.domain.user.dto.LoginRequest;
+import com.crewise.backend.domain.user.dto.ResetPasswordRequest;
 import com.crewise.backend.domain.user.dto.SignupRequest;
 import com.crewise.backend.domain.user.dto.UserResponse;
 import com.crewise.backend.domain.user.dto.UserUpdateRequest;
+import com.crewise.backend.domain.user.dto.VerifyUserRequest;
 import com.crewise.backend.domain.user.entity.User;
 import com.crewise.backend.domain.user.repository.UserRepository;
 import com.crewise.backend.global.config.jwt.JwtUtil;
@@ -87,6 +91,29 @@ public class UserService {
         if (userRepository.existsByUserEmail(email)) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
+    }
+
+    // 이메일 찾기 (이름 + 전화번호)
+    @Transactional(readOnly = true)
+    public FindEmailResponse findEmail(FindEmailRequest request) {
+        User user = userRepository.findByUserNameAndUserTel(request.getName(), request.getPhone())
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 계정을 찾을 수 없습니다."));
+        return new FindEmailResponse(user.getUserEmail());
+    }
+
+    // 본인 확인 (이메일 + 전화번호)
+    @Transactional(readOnly = true)
+    public void verifyUser(VerifyUserRequest request) {
+        userRepository.findByUserEmailAndUserTel(request.getEmail(), request.getPhone())
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 계정을 찾을 수 없습니다."));
+    }
+
+    // 비밀번호 재설정 (이메일 + 전화번호 + 새 비밀번호)
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByUserEmailAndUserTel(request.getEmail(), request.getPhone())
+                .orElseThrow(() -> new IllegalArgumentException("일치하는 계정을 찾을 수 없습니다."));
+        user.update(passwordEncoder.encode(request.getNewPassword()), null, null);
     }
 
     // ULID 대신 임시로 UUID 사용
