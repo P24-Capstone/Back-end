@@ -36,4 +36,16 @@ public class MissionVerify {
 
     @Column(name = "MEM_ID", length = 26, nullable = false)
     private String memId;
+
+    @Column(name = "REJECT_REASON")
+    private String rejectReason;
+
+    public void approve() {
+        this.verifyState = "A";
+    }
+
+    public void reject(String rejectReason) {
+        this.verifyState = "R";
+        this.rejectReason = rejectReason;
+    }
 }
