@@ -21,3 +21,13 @@ spring:
 jwt:
   secret: [JWT_SECRET]
   expiration: 86400000
+
+ai:
+  serving:
+    url: [AI_SERVING_URL]
+
+storage:
+  type: local   # S3 전환 시 's3' 로 변경
+  local:
+    upload-dir: [UPLOAD_DIR]
+    base-url: [BASE_URL]
