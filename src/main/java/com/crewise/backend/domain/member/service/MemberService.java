@@ -3,6 +3,7 @@ package com.crewise.backend.domain.member.service;
 import com.crewise.backend.domain.member.dto.MemberCreateRequest;
 import com.crewise.backend.domain.member.dto.MemberJoinByCodeRequest;
 import com.crewise.backend.domain.member.dto.MemberResponse;
+import com.crewise.backend.domain.member.dto.MemberUpdateRequest;
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
 import com.crewise.backend.domain.team.entity.Team;
@@ -126,6 +127,25 @@ public class MemberService {
 
         Member saved = memberRepository.save(member);
         return MemberResponse.from(saved, getImgFileKey(saved.getUserImgId()));
+    }
+
+    // 모임원 정보 수정 (본인만)
+    @Transactional
+    public MemberResponse updateMember(String memId, MemberUpdateRequest request, String userId) {
+        Member member = memberRepository.findById(memId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임원입니다."));
+
+        if (!member.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
+        if (request.getUserImgId() != null) {
+            userImgRepository.findById(request.getUserImgId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이미지입니다."));
+        }
+
+        member.update(request.getMemNic(), request.getUserImgId());
+        return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 
     // 모임 탈퇴

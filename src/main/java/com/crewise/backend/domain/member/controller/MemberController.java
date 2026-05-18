@@ -3,6 +3,7 @@ package com.crewise.backend.domain.member.controller;
 import com.crewise.backend.domain.member.dto.MemberCreateRequest;
 import com.crewise.backend.domain.member.dto.MemberJoinByCodeRequest;
 import com.crewise.backend.domain.member.dto.MemberResponse;
+import com.crewise.backend.domain.member.dto.MemberUpdateRequest;
 import com.crewise.backend.domain.member.service.MemberService;
 import com.crewise.backend.global.common.ApiResponse;
 import jakarta.validation.Valid;
@@ -65,6 +66,15 @@ public class MemberController {
             @Valid @RequestBody MemberJoinByCodeRequest request,
             @AuthenticationPrincipal String userId) {
         return ResponseEntity.ok(ApiResponse.ok(memberService.joinTeamByCode(request, userId)));
+    }
+
+    // 모임원 정보 수정 (본인만)
+    @PatchMapping("/{memId}")
+    public ResponseEntity<ApiResponse<MemberResponse>> updateMember(
+            @PathVariable String memId,
+            @RequestBody MemberUpdateRequest request,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(memberService.updateMember(memId, request, userId)));
     }
 
     // 모임 탈퇴

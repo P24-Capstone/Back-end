@@ -48,4 +48,9 @@ public class Member {
         this.memState = "R";
         this.procDtm = procDtm;
     }
+
+    public void update(String memNic, Long userImgId) {
+        if (memNic != null) this.memNic = memNic;
+        if (userImgId != null) this.userImgId = userImgId;
+    }
 }
