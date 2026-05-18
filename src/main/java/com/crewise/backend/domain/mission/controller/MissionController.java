@@ -3,6 +3,8 @@ package com.crewise.backend.domain.mission.controller;
 import com.crewise.backend.domain.mission.dto.MissionCreateRequest;
 import com.crewise.backend.domain.mission.dto.MissionResponse;
 import com.crewise.backend.domain.mission.dto.MissionVerifyRequest;
+import com.crewise.backend.domain.mission.dto.MissionVerifyResponse;
+import com.crewise.backend.domain.mission.dto.MissionVerifyUpdateRequest;
 import com.crewise.backend.domain.mission.entity.MissionVerify;
 import com.crewise.backend.domain.mission.service.MissionService;
 import com.crewise.backend.global.common.ApiResponse;
@@ -60,5 +62,46 @@ public class MissionController {
             @Valid @RequestBody MissionVerifyRequest request,
             @AuthenticationPrincipal String userId) {
         return ResponseEntity.ok(ApiResponse.ok(missionService.verifyMission(request, userId)));
+    }
+
+    // 제출 목록 조회 (모임장만)
+    @GetMapping("/{missionId}/submissions")
+    public ResponseEntity<ApiResponse<List<MissionVerifyResponse>>> getSubmissions(
+            @PathVariable Long missionId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(missionService.getSubmissions(missionId, userId)));
+    }
+
+    // 내 제출 현황 조회
+    @GetMapping("/{missionId}/submissions/me")
+    public ResponseEntity<ApiResponse<MissionVerifyResponse>> getMySubmission(
+            @PathVariable Long missionId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(missionService.getMySubmission(missionId, userId)));
+    }
+
+    // 제출 상세 조회
+    @GetMapping("/submissions/{verifyId}")
+    public ResponseEntity<ApiResponse<MissionVerifyResponse>> getSubmission(
+            @PathVariable Long verifyId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(missionService.getSubmission(verifyId, userId)));
+    }
+
+    // 승인 (모임장만)
+    @PatchMapping("/submissions/{verifyId}/approve")
+    public ResponseEntity<ApiResponse<MissionVerifyResponse>> approveSubmission(
+            @PathVariable Long verifyId,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(missionService.approveSubmission(verifyId, userId)));
+    }
+
+    // 거절 (모임장만)
+    @PatchMapping("/submissions/{verifyId}/reject")
+    public ResponseEntity<ApiResponse<MissionVerifyResponse>> rejectSubmission(
+            @PathVariable Long verifyId,
+            @RequestBody MissionVerifyUpdateRequest request,
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(missionService.rejectSubmission(verifyId, request.getRejectReason(), userId)));
     }
 }
