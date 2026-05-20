@@ -8,6 +8,7 @@ import com.crewise.backend.domain.news.entity.Comment;
 import com.crewise.backend.domain.news.entity.News;
 import com.crewise.backend.domain.news.repository.CommentRepository;
 import com.crewise.backend.domain.news.repository.NewsRepository;
+import com.crewise.backend.domain.user.repository.UserImgRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class NewsService {
     private final NewsRepository newsRepository;
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
+    private final UserImgRepository userImgRepository;
 
     // 팀 멤버 확인
     private void checkTeamMember(String userId, String teamId) {
@@ -84,9 +86,23 @@ public class NewsService {
             throw new IllegalArgumentException("댓글을 달 수 없는 소식입니다.");
         }
 
-        return commentRepository.findByNewsIdOrderByCmtIdAsc(newsId)
-                .stream()
-                .map(CommentResponse::from)
+        List<Comment> comments = commentRepository.findByNewsIdOrderByCmtIdAsc(newsId);
+
+        List<String> memIds = comments.stream().map(Comment::getMemId).distinct().collect(Collectors.toList());
+        java.util.Map<String, com.crewise.backend.domain.member.entity.Member> memberMap = memberRepository.findAllById(memIds)
+                .stream().collect(Collectors.toMap(com.crewise.backend.domain.member.entity.Member::getMemId, m -> m));
+                
+        List<Long> imgIds = memberMap.values().stream().map(com.crewise.backend.domain.member.entity.Member::getUserImgId).filter(id -> id != null).distinct().collect(Collectors.toList());
+        java.util.Map<Long, String> imgKeyMap = userImgRepository.findAllById(imgIds)
+                .stream().collect(Collectors.toMap(com.crewise.backend.domain.user.entity.UserImg::getImgId, com.crewise.backend.domain.user.entity.UserImg::getImgFileKey));
+
+        return comments.stream()
+                .map(cmt -> {
+                    com.crewise.backend.domain.member.entity.Member m = memberMap.get(cmt.getMemId());
+                    String memNic = m != null ? m.getMemNic() : null;
+                    String userImg = (m != null && m.getUserImgId() != null) ? imgKeyMap.get(m.getUserImgId()) : null;
+                    return CommentResponse.from(cmt, memNic, userImg);
+                })
                 .collect(Collectors.toList());
     }
 
