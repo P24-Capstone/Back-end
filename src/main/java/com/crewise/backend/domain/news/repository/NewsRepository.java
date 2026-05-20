@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface NewsRepository extends JpaRepository<News, Long> {
     List<News> findByTeamIdOrderByNewsIdDesc(String teamId);
+    List<News> findByTeamIdInOrderByNewsIdDesc(List<String> teamIds);
 }

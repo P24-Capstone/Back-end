@@ -77,8 +77,8 @@ public class MemberService {
     // 모임 가입 (모임원 생성)
     @Transactional
     public MemberResponse joinTeam(MemberCreateRequest request, String userId) {
-        if (memberRepository.existsByUserIdAndTeamId(userId, request.getTeamId())) {
-            throw new IllegalArgumentException("이미 가입된 모임입니다.");
+        if (memberRepository.existsByUserIdAndTeamIdAndMemStateIn(userId, request.getTeamId(), List.of("A", "W"))) {
+            throw new IllegalArgumentException("이미 가입되었거나 가입 대기 중인 모임입니다.");
         }
 
         if (request.getUserImgId() != null) {
@@ -107,8 +107,8 @@ public class MemberService {
         Team team = teamRepository.findByCode(request.getCode())
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 추천코드입니다."));
 
-        if (memberRepository.existsByUserIdAndTeamId(userId, team.getTeamId())) {
-            throw new IllegalArgumentException("이미 가입된 모임입니다.");
+        if (memberRepository.existsByUserIdAndTeamIdAndMemStateIn(userId, team.getTeamId(), List.of("A", "W"))) {
+            throw new IllegalArgumentException("이미 가입되었거나 가입 대기 중인 모임입니다.");
         }
 
         if (request.getUserImgId() != null) {
@@ -164,6 +164,10 @@ public class MemberService {
             throw new IllegalArgumentException("모임장은 탈퇴할 수 없습니다. 모임장 권한을 위임한 후 탈퇴해주세요.");
         }
 
+        if ("A".equals(member.getMemState())) {
+            teamRepository.findById(member.getTeamId()).ifPresent(Team::decrementCurrentMember);
+        }
+
         memberRepository.delete(member);
     }
 
@@ -189,6 +193,11 @@ public class MemberService {
         }
 
         member.approve(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        Team team = teamRepository.findById(member.getTeamId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 모임입니다."));
+        team.incrementCurrentMember();
+
         newsService.createNews("M", null,
                 member.getMemNic() + "님이 모임에 가입했어요!", member.getTeamId());
         return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));

@@ -26,6 +26,13 @@ public class TeamController {
         return ResponseEntity.ok(ApiResponse.ok(teamService.getMyTeams(userId)));
     }
 
+    // 대기 중인 모임 목록 조회 (가입 신청 후 승인 대기)
+    @GetMapping("/my/waiting")
+    public ResponseEntity<ApiResponse<List<TeamResponse>>> getWaitTeams(
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(teamService.getWaitTeams(userId)));
+    }
+
     // 모임 상세 조회
     @GetMapping("/{teamId}")
     public ResponseEntity<ApiResponse<TeamResponse>> getTeam(

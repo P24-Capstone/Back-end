@@ -35,4 +35,12 @@ public class Team {
 
     @Column(name = "CODE", length = 10)
     private String code;
+
+    public void incrementCurrentMember() {
+        this.currentMember++;
+    }
+
+    public void decrementCurrentMember() {
+        if (this.currentMember > 0) this.currentMember--;
+    }
 }
