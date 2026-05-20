@@ -8,6 +8,7 @@ import com.crewise.backend.domain.meetingrecord.repository.MeetingRecordReposito
 import com.crewise.backend.domain.meetingrecord.repository.RecFileRepository;
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
+import com.crewise.backend.domain.news.service.NewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class MeetingRecordService {
     private final RecFileRepository recFileRepository;
     private final MemberRepository memberRepository;
     private final RestTemplate restTemplate;
+    private final NewsService newsService;
 
     @Value("${ai.serving.url}")
     private String aiServingUrl;
@@ -116,6 +118,8 @@ public class MeetingRecordService {
             recFileRepository.save(recFile);
         }
 
+        newsService.createNews("I", savedRecord.getMeetingId(),
+                savedRecord.getMeetingTitle() + " AI 회의록이 생성됐어요!", savedRecord.getTeamId());
         return MeetingRecordResponse.from(savedRecord, request.getRecFileKey());
     }
 

@@ -2,6 +2,7 @@ package com.crewise.backend.domain.vote.service;
 
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
+import com.crewise.backend.domain.news.service.NewsService;
 import com.crewise.backend.domain.vote.dto.VoteCreateRequest;
 import com.crewise.backend.domain.vote.dto.VoteHistoryRequest;
 import com.crewise.backend.domain.vote.dto.VoteResponse;
@@ -28,6 +29,7 @@ public class VoteService {
     private final VoteOptionRepository voteOptionRepository;
     private final VoteHistoryRepository voteHistoryRepository;
     private final MemberRepository memberRepository;
+    private final NewsService newsService;
 
     // 팀 멤버 확인
     private void checkTeamMember(String userId, String teamId) {
@@ -106,6 +108,8 @@ public class VoteService {
                 .collect(Collectors.toList());
         voteOptionRepository.saveAll(options);
 
+        newsService.createNews("V", savedVote.getVoteId(),
+                "새 투표가 시작됐어요: " + savedVote.getVoteTitle(), savedVote.getTeamId());
         return VoteResponse.from(savedVote, options, List.of());
     }
 

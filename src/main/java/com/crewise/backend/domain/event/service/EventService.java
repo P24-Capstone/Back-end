@@ -6,6 +6,7 @@ import com.crewise.backend.domain.event.entity.Event;
 import com.crewise.backend.domain.event.repository.EventRepository;
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
+import com.crewise.backend.domain.news.service.NewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final MemberRepository memberRepository;
+    private final NewsService newsService;
 
     // 팀 멤버 여부 확인
     private void checkTeamMember(String userId, String teamId) {
@@ -69,7 +71,10 @@ public class EventService {
                 .evtRegDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .teamId(request.getTeamId())
                 .build();
-        return EventResponse.from(eventRepository.save(event));
+        Event savedEvent = eventRepository.save(event);
+        newsService.createNews("E", savedEvent.getEvtId(),
+                "새 일정이 등록됐어요: " + savedEvent.getEvtTitle(), savedEvent.getTeamId());
+        return EventResponse.from(savedEvent);
     }
 
     // 일정 수정 (모임장만)
