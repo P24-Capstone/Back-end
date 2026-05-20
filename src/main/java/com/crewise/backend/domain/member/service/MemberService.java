@@ -199,7 +199,7 @@ public class MemberService {
         team.incrementCurrentMember();
 
         newsService.createNews("M", null,
-                member.getMemNic() + "님이 모임에 가입했어요!", member.getTeamId());
+                "🎉 " + member.getMemNic() + "님이 모임에 새로 합류했어요! \n", member.getTeamId());
         return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 

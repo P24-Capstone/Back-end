@@ -59,7 +59,11 @@ public class VoteService {
                             .stream()
                             .map(VoteHistory::getOptSn)
                             .collect(Collectors.toList());
-                    return VoteResponse.from(vote, options, votedOptSns);
+                    List<Long> myOptSns = voteHistoryRepository.findByVoteIdAndMemId(vote.getVoteId(), userId)
+                            .map(h -> List.of(h.getOptSn()))
+                            .orElse(List.of());
+                    boolean myVoted = !myOptSns.isEmpty();
+                    return VoteResponse.from(vote, options, votedOptSns, myVoted, myOptSns);
                 })
                 .collect(Collectors.toList());
     }
@@ -76,8 +80,12 @@ public class VoteService {
                 .stream()
                 .map(VoteHistory::getOptSn)
                 .collect(Collectors.toList());
+        List<Long> myOptSns = voteHistoryRepository.findByVoteIdAndMemId(voteId, userId)
+                .map(h -> List.of(h.getOptSn()))
+                .orElse(List.of());
+        boolean myVoted = !myOptSns.isEmpty();
 
-        return VoteResponse.from(vote, options, votedOptSns);
+        return VoteResponse.from(vote, options, votedOptSns, myVoted, myOptSns);
     }
 
     // 투표 생성 (모임장만)
@@ -109,35 +117,31 @@ public class VoteService {
         voteOptionRepository.saveAll(options);
 
         newsService.createNews("V", savedVote.getVoteId(),
-                "새 투표가 시작됐어요: " + savedVote.getVoteTitle(), savedVote.getTeamId());
-        return VoteResponse.from(savedVote, options, List.of());
+                "🗳️ 새 투표가 시작됐어요! \n " + savedVote.getVoteTitle(), savedVote.getTeamId());
+        return VoteResponse.from(savedVote, options, List.of(), false, List.of());
     }
 
-    // 투표하기
+    // 투표하기 (기존 투표가 있으면 삭제 후 재등록)
     @Transactional
     public void doVote(VoteHistoryRequest request, String memId) {
         Vote vote = voteRepository.findById(request.getVoteId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 투표입니다."));
-
-        // 이미 투표했는지 확인
-        if (voteHistoryRepository.existsByVoteIdAndMemId(request.getVoteId(), memId)) {
-            throw new IllegalArgumentException("이미 투표하셨습니다.");
-        }
 
         // 다중 선택 불가인데 여러 개 선택한 경우
         if ("N".equals(vote.getVoteMulti()) && request.getOptSnList().size() > 1) {
             throw new IllegalArgumentException("단일 선택만 가능한 투표입니다.");
         }
 
-        List<VoteHistory> histories = request.getOptSnList().stream()
-                .map(optSn -> VoteHistory.builder()
-                        .voteId(request.getVoteId())
-                        .memId(memId)
-                        .optSn(optSn)
-                        .build())
-                .collect(Collectors.toList());
+        // 기존 투표 내역 삭제 (재투표 지원)
+        voteHistoryRepository.deleteByVoteIdAndMemId(request.getVoteId(), memId);
 
-        voteHistoryRepository.saveAll(histories);
+        VoteHistory history = VoteHistory.builder()
+                .voteId(request.getVoteId())
+                .memId(memId)
+                .optSn(request.getOptSnList().get(0))
+                .build();
+
+        voteHistoryRepository.save(history);
     }
 
     // 투표 삭제 (모임장만)

@@ -73,7 +73,7 @@ public class EventService {
                 .build();
         Event savedEvent = eventRepository.save(event);
         newsService.createNews("E", savedEvent.getEvtId(),
-                "새 일정이 등록됐어요: " + savedEvent.getEvtTitle(), savedEvent.getTeamId());
+                "📆 새 일정이 등록됐어요! " + savedEvent.getEvtTitle(), savedEvent.getTeamId());
         return EventResponse.from(savedEvent);
     }
 

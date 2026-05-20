@@ -119,7 +119,7 @@ public class MeetingRecordService {
         }
 
         newsService.createNews("I", savedRecord.getMeetingId(),
-                savedRecord.getMeetingTitle() + " AI 회의록이 생성됐어요!", savedRecord.getTeamId());
+               "📝 새로운 회의록이 등록되었어요! \n" + savedRecord.getMeetingTitle(), savedRecord.getTeamId());
         return MeetingRecordResponse.from(savedRecord, request.getRecFileKey());
     }
 
