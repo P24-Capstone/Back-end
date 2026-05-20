@@ -72,7 +72,7 @@ public class NoticeService {
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
         newsService.createNews("N", savedNotice.getNotiId(),
-                "새 공지사항이 등록됐어요: " + savedNotice.getNotiTitle(), savedNotice.getTeamId());
+                "📢 모임장님이 새로운 공지를 올렸어요! \n" + savedNotice.getNotiTitle(), savedNotice.getTeamId());
         return NoticeResponse.from(savedNotice);
     }
 

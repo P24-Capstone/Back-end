@@ -21,6 +21,8 @@ public class VoteResponse {
     private String voteRegDtm;
     private String teamId;
     private List<VoteOptionDto> options;
+    private boolean myVoted;
+    private List<Long> myOptSns;
 
     @Getter
     public static class VoteOptionDto {
@@ -37,7 +39,7 @@ public class VoteResponse {
         }
     }
 
-    public static VoteResponse from(Vote vote, List<VoteOption> options, List<Long> votedOptSns) {
+    public static VoteResponse from(Vote vote, List<VoteOption> options, List<Long> votedOptSns, boolean myVoted, List<Long> myOptSns) {
         VoteResponse response = new VoteResponse();
         response.voteId = vote.getVoteId();
         response.voteTitle = vote.getVoteTitle();
@@ -53,6 +55,8 @@ public class VoteResponse {
                 .map(opt -> VoteOptionDto.from(opt,
                         (int) votedOptSns.stream().filter(id -> id.equals(opt.getOptSn())).count()))
                 .collect(Collectors.toList());
+        response.myVoted = myVoted;
+        response.myOptSns = myOptSns;
         return response;
     }
 }

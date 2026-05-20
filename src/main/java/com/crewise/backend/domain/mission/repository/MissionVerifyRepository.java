@@ -12,4 +12,6 @@ public interface MissionVerifyRepository extends JpaRepository<MissionVerify, Lo
     List<MissionVerify> findByMemId(String memId);
 
     Optional<MissionVerify> findByMissionIdAndMemId(Long missionId, String memId);
+
+    List<MissionVerify> findByMissionIdIn(List<Long> missionIds);
 }

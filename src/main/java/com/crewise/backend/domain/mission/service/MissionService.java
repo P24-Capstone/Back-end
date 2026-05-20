@@ -161,7 +161,7 @@ public class MissionService {
         String memNic = memberRepository.findByUserIdAndTeamId(verify.getMemId(), mission.getTeamId())
                 .map(Member::getMemNic).orElse("알 수 없음");
         newsService.createNews("A", verify.getVerifyId(),
-                memNic + "님이 미션을 완료했어요: " + mission.getMissionTitle(), mission.getTeamId());
+                "🔥 " + memNic + "님이 미션을 완료했어요! \n" + mission.getMissionTitle(), mission.getTeamId());
         List<String> fileKeys = verifyFileRepository.findByVerifyId(verifyId)
                 .stream().map(VerifyFile::getVerifyFileKey).collect(Collectors.toList());
         return MissionVerifyResponse.from(verify, memNic, fileKeys);
