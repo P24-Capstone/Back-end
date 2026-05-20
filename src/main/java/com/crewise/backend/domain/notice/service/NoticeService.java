@@ -2,6 +2,7 @@ package com.crewise.backend.domain.notice.service;
 
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
+import com.crewise.backend.domain.news.service.NewsService;
 import com.crewise.backend.domain.notice.dto.NoticeCreateRequest;
 import com.crewise.backend.domain.notice.dto.NoticeResponse;
 import com.crewise.backend.domain.notice.entity.Notice;
@@ -21,6 +22,7 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final MemberRepository memberRepository;
+    private final NewsService newsService;
 
     // 팀 멤버 여부 확인
     private void checkTeamMember(String userId, String teamId) {
@@ -68,7 +70,10 @@ public class NoticeService {
                 .regDtm(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .teamId(request.getTeamId())
                 .build();
-        return NoticeResponse.from(noticeRepository.save(notice));
+        Notice savedNotice = noticeRepository.save(notice);
+        newsService.createNews("N", savedNotice.getNotiId(),
+                "새 공지사항이 등록됐어요: " + savedNotice.getNotiTitle(), savedNotice.getTeamId());
+        return NoticeResponse.from(savedNotice);
     }
 
     // 공지 삭제 (모임장만)

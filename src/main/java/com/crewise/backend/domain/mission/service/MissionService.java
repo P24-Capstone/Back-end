@@ -4,6 +4,7 @@ import com.crewise.backend.domain.mission.entity.VerifyFile;
 import com.crewise.backend.domain.mission.repository.VerifyFileRepository;
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
+import com.crewise.backend.domain.news.service.NewsService;
 import com.crewise.backend.domain.mission.dto.MissionCreateRequest;
 import com.crewise.backend.domain.mission.dto.MissionResponse;
 import com.crewise.backend.domain.mission.dto.MissionVerifyRequest;
@@ -34,6 +35,7 @@ public class MissionService {
     private final MemberRepository memberRepository;
     private final RestTemplate restTemplate;
     private final VerifyFileRepository verifyFileRepository;
+    private final NewsService newsService;
 
     @Value("${ai.serving.url}")
     private String aiServingUrl;
@@ -158,6 +160,8 @@ public class MissionService {
         verify.approve();
         String memNic = memberRepository.findByUserIdAndTeamId(verify.getMemId(), mission.getTeamId())
                 .map(Member::getMemNic).orElse("알 수 없음");
+        newsService.createNews("A", verify.getVerifyId(),
+                memNic + "님이 미션을 완료했어요: " + mission.getMissionTitle(), mission.getTeamId());
         List<String> fileKeys = verifyFileRepository.findByVerifyId(verifyId)
                 .stream().map(VerifyFile::getVerifyFileKey).collect(Collectors.toList());
         return MissionVerifyResponse.from(verify, memNic, fileKeys);

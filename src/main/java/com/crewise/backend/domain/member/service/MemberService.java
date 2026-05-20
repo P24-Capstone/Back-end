@@ -6,6 +6,7 @@ import com.crewise.backend.domain.member.dto.MemberResponse;
 import com.crewise.backend.domain.member.dto.MemberUpdateRequest;
 import com.crewise.backend.domain.member.entity.Member;
 import com.crewise.backend.domain.member.repository.MemberRepository;
+import com.crewise.backend.domain.news.service.NewsService;
 import com.crewise.backend.domain.team.entity.Team;
 import com.crewise.backend.domain.team.repository.TeamRepository;
 import com.crewise.backend.domain.user.entity.UserImg;
@@ -27,6 +28,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
     private final UserImgRepository userImgRepository;
+    private final NewsService newsService;
 
     // 이미지 URL 조회
     private String getImgFileKey(Long userImgId) {
@@ -187,6 +189,8 @@ public class MemberService {
         }
 
         member.approve(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        newsService.createNews("M", null,
+                member.getMemNic() + "님이 모임에 가입했어요!", member.getTeamId());
         return MemberResponse.from(member, getImgFileKey(member.getUserImgId()));
     }
 
