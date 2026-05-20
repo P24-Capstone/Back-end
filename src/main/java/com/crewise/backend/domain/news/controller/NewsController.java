@@ -55,9 +55,9 @@ public class NewsController {
     @PutMapping("/comments/{cmtId}")
     public ResponseEntity<ApiResponse<CommentResponse>> updateComment(
             @PathVariable Long cmtId,
-            @RequestParam String cmtContent,
+            @RequestBody java.util.Map<String, String> request,
             @AuthenticationPrincipal String userId) {
-        return ResponseEntity.ok(ApiResponse.ok(newsService.updateComment(cmtId, cmtContent, userId)));
+        return ResponseEntity.ok(ApiResponse.ok(newsService.updateComment(cmtId, request.get("cmtContent"), userId)));
     }
 
     // 댓글 삭제 (본인만)
