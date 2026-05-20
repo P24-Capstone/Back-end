@@ -57,6 +57,24 @@ public class TeamService {
                 .map(TeamResponse::from)
                 .collect(Collectors.toList());
     }
+    
+    // 가입대기 중 모임 목록 조회
+    @Transactional(readOnly = true)
+    public List<TeamResponse> getWaitTeams(String userId) {
+        List<String> teamIds = memberRepository.findByUserIdAndMemState(userId, "W")
+                .stream()
+                .map(Member::getTeamId)
+                .collect(Collectors.toList());
+
+        if (teamIds.isEmpty()) {
+            return List.of();
+        }
+
+        return teamRepository.findAllById(teamIds)
+                .stream()
+                .map(TeamResponse::from)
+                .collect(Collectors.toList());
+    }
 
     // 모임 상세 조회
     @Transactional(readOnly = true)

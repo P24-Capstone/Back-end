@@ -42,6 +42,24 @@ public class NewsService {
                 .collect(Collectors.toList());
     }
 
+    // 내가 가입한 모든 팀의 최신 소식 목록 조회
+    @Transactional(readOnly = true)
+    public List<NewsResponse> getAllNewsList(String userId) {
+        List<String> teamIds = memberRepository.findByUserIdAndMemState(userId, "A")
+                .stream()
+                .map(m -> m.getTeamId())
+                .collect(Collectors.toList());
+
+        if (teamIds.isEmpty()) {
+            return List.of();
+        }
+
+        return newsRepository.findByTeamIdInOrderByNewsIdDesc(teamIds)
+                .stream()
+                .map(NewsResponse::from)
+                .collect(Collectors.toList());
+    }
+
     // 최근 소식 생성 (내부 호출용 - 다른 서비스에서 이벤트 발생 시)
     @Transactional
     public NewsResponse createNews(String targetType, Long targetId, String newsContent, String teamId) {

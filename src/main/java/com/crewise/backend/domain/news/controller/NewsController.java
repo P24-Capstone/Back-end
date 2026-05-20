@@ -20,6 +20,13 @@ public class NewsController {
 
     private final NewsService newsService;
 
+    // 내가 가입한 모든 팀의 최신 소식 목록 조회
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<NewsResponse>>> getAllNewsList(
+            @AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(ApiResponse.ok(newsService.getAllNewsList(userId)));
+    }
+
     // 최근 소식 목록 조회 (팀 멤버만)
     @GetMapping
     public ResponseEntity<ApiResponse<List<NewsResponse>>> getNewsList(

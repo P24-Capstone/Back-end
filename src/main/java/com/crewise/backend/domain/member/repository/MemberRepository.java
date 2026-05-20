@@ -18,5 +18,7 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
     boolean existsByUserIdAndTeamId(String userId, String teamId);
 
+    boolean existsByUserIdAndTeamIdAndMemStateIn(String userId, String teamId, List<String> memStates);
+
     List<Member> findByTeamIdOrderByMemRoleAsc(String teamId);
 }
